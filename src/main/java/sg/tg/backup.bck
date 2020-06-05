@@ -1,0 +1,180 @@
+package sg.tg;
+
+import org.telegram.telegrambots.ApiContextInitializer;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class MyBot extends TelegramLongPollingBot {
+
+    public static void main(String[] args) {
+        ApiContextInitializer.init(); // Инициализируем апи
+        TelegramBotsApi botapi = new TelegramBotsApi();
+        try {
+            botapi.registerBot(new MyBot());
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+    public void sendMsg(Message msg, String text) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.enableMarkdown(false);
+        sendMessage.setChatId(msg.getChatId());
+//        sendMessage.setReplyToMessageId(msg.getMessageId());
+        sendMessage.setText(text);
+
+        try {
+            sendKeyboard(sendMessage);
+            execute(sendMessage);
+            execute(sendMessage);
+            execute(sendMessage);
+
+        } catch (Exception ex) {
+System.out.println("error: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    public void sendKeyboard(SendMessage sendMessage) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        sendMessage.setReplyMarkup(replyKeyboardMarkup);
+        replyKeyboardMarkup.setSelective(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(false); // если true - после отправки сообщения кнопка пропадет, иначе - останется
+        replyKeyboardMarkup.setResizeKeyboard(true); // если true - кнопка будет маленькой, иначе большой
+
+        List<KeyboardRow> keyboardRowList = new ArrayList<KeyboardRow>();
+        KeyboardRow row = new KeyboardRow();
+
+        KeyboardButton phoneButton = new KeyboardButton();
+        phoneButton.setText("Login");
+        phoneButton.setRequestContact(true);
+        phoneButton.setRequestLocation(false);
+        row.add(phoneButton);
+
+        keyboardRowList.add(row);
+        replyKeyboardMarkup.setKeyboard(keyboardRowList);
+
+
+    }
+
+    public void setHomeMenu(SendMessage sendMessage) throws TelegramApiException {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        sendMessage.setReplyMarkup(replyKeyboardMarkup);
+        replyKeyboardMarkup.setSelective(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(false); // если true - после отправки сообщения кнопка пропадет, иначе - останется
+        replyKeyboardMarkup.setResizeKeyboard(true); // если true - кнопка будет маленькой, иначе большой
+
+        List<KeyboardRow> keyboardRowList = new ArrayList<KeyboardRow>();
+        KeyboardRow row = new KeyboardRow();
+
+        KeyboardButton phoneButton = new KeyboardButton();
+        phoneButton.setText("Settings");
+        row.add(phoneButton);
+
+        keyboardRowList.add(row);
+        replyKeyboardMarkup.setKeyboard(keyboardRowList);
+        execute(sendMessage);
+    }
+
+
+    public static SendMessage sendInlineKeyBoardMessage(long chatId) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
+        InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
+        inlineKeyboardButton1.setText("Тык");
+        inlineKeyboardButton1.setCallbackData("Button \"Тык\" has been pressed");
+        inlineKeyboardButton2.setText("Тык2");
+        inlineKeyboardButton2.setCallbackData("Button \"Тык2\" has been pressed");
+        List<InlineKeyboardButton> keyboardButtonsRow1 = new ArrayList<InlineKeyboardButton>();
+        List<InlineKeyboardButton> keyboardButtonsRow2 = new ArrayList<InlineKeyboardButton>();
+        keyboardButtonsRow1.add(inlineKeyboardButton1);
+        keyboardButtonsRow1.add(new InlineKeyboardButton().setText("Fi4a").setCallbackData("CallFi4a"));
+        keyboardButtonsRow2.add(inlineKeyboardButton2);
+        List<List<InlineKeyboardButton>> rowList = new ArrayList<List<InlineKeyboardButton>>();
+        rowList.add(keyboardButtonsRow1);
+        rowList.add(keyboardButtonsRow2);
+        inlineKeyboardMarkup.setKeyboard(rowList);
+        return new SendMessage().setChatId(chatId).setText("Пример").setReplyMarkup(inlineKeyboardMarkup);
+    }
+
+
+    public void onUpdateReceived(Update update) {
+
+System.out.println("№: " + update.getUpdateId());
+
+        if (update.hasMessage()) {
+
+            Message msg = update.getMessage();
+
+System.out.println("chatId: " + msg.getChat().getId());
+
+            if (msg.getText() != null) {
+//                sendMsg(msg, msg.getText());
+
+                if(update.getMessage().hasText()){
+                    if(update.getMessage().getText().equals("Start")){
+                        try {
+                            execute(sendInlineKeyBoardMessage(update.getMessage().getChatId()));
+                        } catch (TelegramApiException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+
+            } else {
+                if (msg.getContact() != null && msg.getContact().getPhoneNumber() != null)
+                    System.out.println("phone: " + msg.getContact().getPhoneNumber());
+                if (msg.getLocation() != null)
+                    System.out.println("location: " + msg.getLocation().toString());
+            }
+
+        }
+        else
+        if (update.hasCallbackQuery()) {
+
+System.out.println("CallbackQuery id: " + update.getCallbackQuery().getId());
+System.out.println("CallbackQuery data: " + update.getCallbackQuery().getData());
+System.out.println("CallbackQuery imId: " + update.getCallbackQuery().getInlineMessageId());
+System.out.println("CallbackQuery mess.id: " + update.getCallbackQuery().getMessage().getMessageId());
+System.out.println("CallbackQuery mess.text: " + update.getCallbackQuery().getMessage().getText());
+
+
+            try {
+                setHomeMenu(new SendMessage().setChatId(update.getCallbackQuery().getMessage().getChatId()));
+//                execute(new SendMessage().setText(
+//                                            update.getCallbackQuery().getData()
+//                                          )
+//                                          .setChatId(update.getCallbackQuery().getMessage().getChatId())
+//                );
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    public String getBotUsername() {
+        return "SoftGearTestBot";
+    }
+
+    public String getBotToken() {
+        return "1170323770:AAEBbdmqSvvZ8-Yl5KnSsBkdYArceKoRF1E";
+    }
+}
