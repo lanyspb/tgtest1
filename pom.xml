@@ -32,7 +32,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
+<!--                            <classpathPrefix></classpathPrefix>-->
                             <mainClass>sg.tg.MainBot.class</mainClass>
                         </manifest>
                     </archive>
