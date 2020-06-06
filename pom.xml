@@ -32,8 +32,8 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-<!--                            <classpathPrefix>/</classpathPrefix>-->
-                            <mainClass>MainBot</mainClass>
+                            <classpathPrefix>/target/classes</classpathPrefix>
+                            <mainClass>sg.tg.MainBot</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
